@@ -10,15 +10,17 @@ function getPdfJs() {
     pdfjs = require('pdfjs-dist');
   }
 
-  if (pdfjs && pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+  // Preload worker onto globalThis so pdfjs uses the in-process main thread worker handler
+  // rather than attempting browser-style document script tag creation in Node / Electron
+  try {
+    const pdfjsWorker = require('pdfjs-dist/legacy/build/pdf.worker.js');
+    (globalThis as any).pdfjsWorker = pdfjsWorker;
+  } catch {
     try {
-      pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/legacy/build/pdf.worker.js');
+      const pdfjsWorker = require('pdfjs-dist/build/pdf.worker.js');
+      (globalThis as any).pdfjsWorker = pdfjsWorker;
     } catch {
-      try {
-        pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/build/pdf.worker.js');
-      } catch {
-        // ignore
-      }
+      // ignore
     }
   }
 
@@ -72,7 +74,7 @@ export class PdfParser {
           dir: item.dir,
           width: item.width || 0,
           height: item.height || 0,
-          transform: item.transform || [1, 0, 0, 1, 0, 0],
+          transform: item.transform || [1, 0, 1, 1, 0, 0],
           fontName: item.fontName,
           hasEOL: item.hasEOL,
         };

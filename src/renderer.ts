@@ -9,15 +9,15 @@ function getPdfJs() {
     pdfjs = require('pdfjs-dist');
   }
 
-  if (pdfjs && pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+  try {
+    const pdfjsWorker = require('pdfjs-dist/legacy/build/pdf.worker.js');
+    (globalThis as any).pdfjsWorker = pdfjsWorker;
+  } catch {
     try {
-      pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/legacy/build/pdf.worker.js');
+      const pdfjsWorker = require('pdfjs-dist/build/pdf.worker.js');
+      (globalThis as any).pdfjsWorker = pdfjsWorker;
     } catch {
-      try {
-        pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/build/pdf.worker.js');
-      } catch {
-        // ignore
-      }
+      // ignore
     }
   }
 
