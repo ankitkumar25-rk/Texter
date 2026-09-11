@@ -6,3 +6,5 @@ out/
 .DS_Store
 *.log
 .env
+.vscode/
+package-lock.json
