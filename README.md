@@ -7,10 +7,46 @@ Repository: https://github.com/ankitkumar25-rk/Texter
 
 ---
 
-## Features
+## Architecture Overview
+
+Texter uses a two-stage hybrid extraction pipeline that combines direct PDF stream parsing with page-level optical character recognition:
+
+```
++-------------------------------------------------------------+
+|                      Input PDF Document                     |
++-------------------------------------------------------------+
+                              |
+               +--------------+--------------+
+               |                             |
+               v                             v
+     [Stage 1: Text Layer]         [Stage 2: OCR Pass]
+     pdfjs-dist extraction         Page Image Rendering
+     - Natural paragraphs          Tesseract.js Engine
+     - Font & Line metrics         - Greek & math symbols
+     - Selectable text             - Non-selectable glyphs
+               |                             |
+               +--------------+--------------+
+                              |
+                              v
+                [Stage 3: Hybrid Merger]
+                - Compare layer density
+                - Identify equation zones
+                - Detect missing diagram text
+                - Wrap low confidence blocks
+                              |
+                              v
+                [Stage 4: Formatter & Output]
+                - Insert '--- Page X ---' markers
+                - Apply file collision resolution
+                - Write target .txt file
+```
+
+---
+
+## Key Features
 
 - Explorer Context Menu Integration: Right-click any PDF file or folder in the VS Code Explorer and convert immediately.
-- Workspace Batch Conversion: Run `PDF to Text: Convert Workspace` via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) to recursively discover and convert all PDF documents.
+- Workspace Batch Conversion: Run `PDF to Text: Convert` via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) to recursively discover and convert all PDF documents.
 - Hybrid Extraction Engine:
   - First Pass: Extract high-fidelity selectable text layers using PDF parsing to preserve natural paragraph, line, and word structures.
   - Second Pass (OCR): Render page images and execute Optical Character Recognition (OCR) with Tesseract to capture embedded equations, diagrams, handwritten notes, and non-standard symbol fonts.
@@ -59,7 +95,7 @@ Repository: https://github.com/ankitkumar25-rk/Texter
 
 ### Converting Entire Workspace
 1. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS) to open the Command Palette.
-2. Type and run `PDF to Text: Convert Workspace`.
+2. Type and run `PDF to Text: Convert`.
 3. Track conversion progress in the bottom-right notification popup.
 
 ---
@@ -74,6 +110,32 @@ This extension contributes the following configuration settings under `pdfToText
 | `pdfToText.ocrConfidenceThreshold` | number | `60` | Threshold percentage below which OCR text is tagged with low-confidence markers. |
 | `pdfToText.outputSuffix` | string | `""` | Optional suffix appended to output filename before the extension (e.g. `_converted`). |
 | `pdfToText.preservePageMarkers` | boolean | `true` | Insert visual page delimiter markers such as `--- Page X ---` between PDF pages. |
+
+---
+
+## Sample Output Format
+
+When converting a multi-page document containing equations, the resulting `.txt` output is structured cleanly:
+
+```text
+--- Page 1 ---
+
+Classical Mechanics and Thermodynamics
+
+The fundamental relation between force and acceleration is given by:
+F = m * a
+
+Under gravitational attraction:
+[OCR-LOW-CONFIDENCE] F = G * (m1 * m2) / r^2 [/OCR-LOW-CONFIDENCE]
+
+
+--- Page 2 ---
+
+Calculus of Variations
+
+The Euler-Lagrange equation for action minimization:
+d/dt (∂L/∂q_dot) - ∂L/∂q = 0
+```
 
 ---
 
