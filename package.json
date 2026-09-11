@@ -42,13 +42,14 @@
   "activationEvents": [
     "onCommand:pdf-to-text.convertFile",
     "onCommand:pdf-to-text.convertFolder",
-    "onCommand:pdf-to-text.convertWorkspace"
+    "onCommand:pdf-to-text.convertWorkspace",
+    "onCommand:pdf-to-text.openVisualConverter"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "pdf-to-text.convertWorkspace",
-        "title": "PDF to Text: Convert",
+        "command": "pdf-to-text.openVisualConverter",
+        "title": "Open in Visual PDF Converter",
         "category": "PDF to Text"
       },
       {
@@ -60,10 +61,20 @@
         "command": "pdf-to-text.convertFolder",
         "title": "Convert PDFs in Folder to Text",
         "category": "PDF to Text"
+      },
+      {
+        "command": "pdf-to-text.convertWorkspace",
+        "title": "PDF to Text: Convert",
+        "category": "PDF to Text"
       }
     ],
     "menus": {
       "explorer/context": [
+        {
+          "command": "pdf-to-text.openVisualConverter",
+          "when": "resourceExtname == .pdf",
+          "group": "7_modification@0"
+        },
         {
           "command": "pdf-to-text.convertFile",
           "when": "resourceExtname == .pdf",

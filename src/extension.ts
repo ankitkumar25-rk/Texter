@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { convertFileCommand } from './commands/convertFileCommand';
 import { convertFolderCommand } from './commands/convertFolderCommand';
 import { convertWorkspaceCommand } from './commands/convertWorkspaceCommand';
+import { openVisualConverterCommand } from './commands/openVisualConverterCommand';
 import { OcrEngine } from './ocrEngine';
 import { OutputLogger } from './outputChannel';
 
@@ -9,7 +10,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const logger = OutputLogger.getInstance();
   logger.info('PDF to Text Converter (Texter) extension activated.', 'Extension');
 
-  // Register command for single PDF file conversion (context menu and command palette)
+  // Register command for single PDF file conversion (background)
   const convertFileSub = vscode.commands.registerCommand(
     'pdf-to-text.convertFile',
     async (uri?: vscode.Uri) => {
@@ -17,7 +18,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   );
 
-  // Register command for folder recursive PDF conversion (context menu)
+  // Register command for folder recursive PDF conversion
   const convertFolderSub = vscode.commands.registerCommand(
     'pdf-to-text.convertFolder',
     async (uri?: vscode.Uri) => {
@@ -33,10 +34,19 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   );
 
+  // Register interactive visual side-by-side converter command
+  const openVisualConverterSub = vscode.commands.registerCommand(
+    'pdf-to-text.openVisualConverter',
+    async (uri?: vscode.Uri) => {
+      await openVisualConverterCommand(context.extensionUri, uri);
+    }
+  );
+
   context.subscriptions.push(
     convertFileSub,
     convertFolderSub,
     convertWorkspaceSub,
+    openVisualConverterSub,
     {
       dispose: () => {
         logger.dispose();
