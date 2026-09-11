@@ -3,11 +3,26 @@ import { PdfPageContent, PdfTextItem } from './types';
 import { OutputLogger } from './outputChannel';
 
 function getPdfJs() {
+  let pdfjs: any;
   try {
-    return require('pdfjs-dist/legacy/build/pdf.js');
+    pdfjs = require('pdfjs-dist/legacy/build/pdf.js');
   } catch {
-    return require('pdfjs-dist');
+    pdfjs = require('pdfjs-dist');
   }
+
+  if (pdfjs && pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+    try {
+      pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/legacy/build/pdf.worker.js');
+    } catch {
+      try {
+        pdfjs.GlobalWorkerOptions.workerSrc = require.resolve('pdfjs-dist/build/pdf.worker.js');
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return pdfjs;
 }
 
 export class PdfParser {
