@@ -2,18 +2,33 @@ import * as fs from 'fs';
 import { PdfPageContent, PdfTextItem } from './types';
 import { OutputLogger } from './outputChannel';
 
-// Dynamic import or require for pdfjs-dist to ensure compatibility with Node runtime
 let pdfjsLib: any = null;
 
 async function getPdfJs() {
   if (!pdfjsLib) {
     try {
-      pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js');
+      pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
     } catch {
       try {
-        pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+        pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js');
       } catch {
         pdfjsLib = require('pdfjs-dist');
+      }
+    }
+
+    if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve(
+          'pdfjs-dist/legacy/build/pdf.worker.js'
+        );
+      } catch {
+        try {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve(
+            'pdfjs-dist/build/pdf.worker.js'
+          );
+        } catch {
+          // fallback
+        }
       }
     }
   }
@@ -37,6 +52,8 @@ export class PdfParser {
       data: uint8Array,
       useSystemFonts: true,
       disableFontFace: true,
+      isEvalSupported: false,
+      useWorkerFetch: false,
     });
 
     const pdfDoc = await loadingTask.promise;
