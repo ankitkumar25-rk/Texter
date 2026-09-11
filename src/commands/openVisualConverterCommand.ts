@@ -1,18 +1,36 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { VisualConverterPanel } from '../visualConverterPanel';
 
 export async function openVisualConverterCommand(
   extensionUri: vscode.Uri,
-  uri?: vscode.Uri
+  uri?: vscode.Uri,
+  selectedUris?: vscode.Uri[]
 ): Promise<void> {
-  let targetPath = uri?.fsPath;
+  const targetPaths: string[] = [];
 
-  if (!targetPath) {
+  if (selectedUris && selectedUris.length > 0) {
+    for (const u of selectedUris) {
+      if (u.fsPath.toLowerCase().endsWith('.pdf')) {
+        targetPaths.push(u.fsPath);
+      }
+    }
+  } else if (uri && uri.fsPath.toLowerCase().endsWith('.pdf')) {
+    targetPaths.push(uri.fsPath);
+  } else {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.uri.fsPath.toLowerCase().endsWith('.pdf')) {
-      targetPath = activeEditor.document.uri.fsPath;
+      targetPaths.push(activeEditor.document.uri.fsPath);
     }
   }
 
-  VisualConverterPanel.render(extensionUri, targetPath);
+  if (targetPaths.length === 0) {
+    vscode.window.showWarningMessage('Please select a valid .pdf file to open.');
+    return;
+  }
+
+  // Open each selected PDF in its own tab
+  for (const filePath of targetPaths) {
+    VisualConverterPanel.createOrShow(extensionUri, filePath);
+  }
 }

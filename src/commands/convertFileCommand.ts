@@ -4,30 +4,42 @@ import { OutputLogger } from '../outputChannel';
 import { ProgressHandler } from '../progressHandler';
 import { SummaryReporter } from '../summaryReporter';
 
-export async function convertFileCommand(uri?: vscode.Uri): Promise<void> {
+export async function convertFileCommand(
+  uri?: vscode.Uri,
+  selectedUris?: vscode.Uri[]
+): Promise<void> {
   const logger = OutputLogger.getInstance();
-  let targetPath = uri?.fsPath;
+  const targetPaths: string[] = [];
 
-  if (!targetPath) {
+  // If user selected multiple files in Explorer (Ctrl/Shift + Click)
+  if (selectedUris && selectedUris.length > 0) {
+    for (const u of selectedUris) {
+      if (u.fsPath.toLowerCase().endsWith('.pdf')) {
+        targetPaths.push(u.fsPath);
+      }
+    }
+  } else if (uri && uri.fsPath.toLowerCase().endsWith('.pdf')) {
+    targetPaths.push(uri.fsPath);
+  } else {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.uri.fsPath.toLowerCase().endsWith('.pdf')) {
-      targetPath = activeEditor.document.uri.fsPath;
+      targetPaths.push(activeEditor.document.uri.fsPath);
     }
   }
 
-  if (!targetPath) {
-    logger.warn('Convert File called without a valid PDF target.', 'ConvertFileCommand');
-    vscode.window.showWarningMessage('Please select a valid .pdf file to convert.');
+  if (targetPaths.length === 0) {
+    logger.warn('Convert File called without any valid PDF target.', 'ConvertFileCommand');
+    vscode.window.showWarningMessage('Please select one or more valid .pdf files to convert.');
     return;
   }
 
-  logger.info(`Executing Convert File command for: ${targetPath}`, 'ConvertFileCommand');
+  logger.info(`Executing Convert File command for ${targetPaths.length} selected file(s).`, 'ConvertFileCommand');
 
   const processor = new BatchProcessor();
   const summary = await ProgressHandler.runWithProgress(
-    'PDF to Text: Converting file...',
+    `PDF to Text: Converting ${targetPaths.length} file(s)...`,
     async (context) => {
-      return await processor.processBatch([targetPath!], context);
+      return await processor.processBatch(targetPaths, context);
     }
   );
 

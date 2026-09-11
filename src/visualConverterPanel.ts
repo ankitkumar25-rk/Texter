@@ -5,7 +5,7 @@ import { FileResolver } from './fileResolver';
 import { OutputLogger } from './outputChannel';
 
 export class VisualConverterPanel {
-  public static currentPanel: VisualConverterPanel | undefined;
+  public static panels: Map<string, VisualConverterPanel> = new Map();
   private readonly panel: vscode.WebviewPanel;
   private readonly extensionUri: vscode.Uri;
   private disposables: vscode.Disposable[] = [];
@@ -56,23 +56,20 @@ export class VisualConverterPanel {
     }
   }
 
-  public static render(extensionUri: vscode.Uri, pdfPath?: string): VisualConverterPanel {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+  public static createOrShow(extensionUri: vscode.Uri, pdfPath?: string): VisualConverterPanel {
+    const key = pdfPath || 'default';
+    const existing = VisualConverterPanel.panels.get(key);
 
-    if (VisualConverterPanel.currentPanel) {
-      VisualConverterPanel.currentPanel.panel.reveal(column);
-      if (pdfPath) {
-        VisualConverterPanel.currentPanel.loadPdf(pdfPath);
-      }
-      return VisualConverterPanel.currentPanel;
+    if (existing) {
+      existing.panel.reveal();
+      return existing;
     }
 
+    const title = pdfPath ? `Convert: ${path.basename(pdfPath)}` : 'PDF Visual Converter';
     const panel = vscode.window.createWebviewPanel(
       'pdfToTextVisualConverter',
-      'PDF to Text Converter (Visual)',
-      column || vscode.ViewColumn.One,
+      title,
+      vscode.ViewColumn.Active,
       {
         enableScripts: true,
         retainContextWhenHidden: true,
@@ -80,13 +77,13 @@ export class VisualConverterPanel {
       }
     );
 
-    VisualConverterPanel.currentPanel = new VisualConverterPanel(panel, extensionUri, pdfPath);
-    return VisualConverterPanel.currentPanel;
+    const instance = new VisualConverterPanel(panel, extensionUri, pdfPath);
+    VisualConverterPanel.panels.set(key, instance);
+    return instance;
   }
 
-  public loadPdf(filePath: string): void {
-    this.currentPdfPath = filePath;
-    this.handleSendPdfBytes(filePath);
+  public static render(extensionUri: vscode.Uri, pdfPath?: string): VisualConverterPanel {
+    return this.createOrShow(extensionUri, pdfPath);
   }
 
   private async handleSendPdfBytes(filePath?: string): Promise<void> {
@@ -120,10 +117,10 @@ export class VisualConverterPanel {
       return;
     }
 
-    const defaultTarget = FileResolver.getTargetFilePath(sourcePath);
+    const defaultTarget = FileResolver.getTargetFilePath(sourcePath, '', 'txt');
     try {
       await fs.promises.writeFile(defaultTarget, text, 'utf8');
-      vscode.window.showInformationMessage(`Successfully saved text to ${path.basename(defaultTarget)}`);
+      vscode.window.showInformationMessage(`Successfully saved: ${path.basename(defaultTarget)}`);
       this.logger.info(`Saved visual converter text to: ${defaultTarget}`, 'VisualConverterPanel');
     } catch (err) {
       this.logger.error(`Error saving converted text to ${defaultTarget}`, err, 'VisualConverterPanel');
@@ -132,7 +129,11 @@ export class VisualConverterPanel {
   }
 
   public dispose(): void {
-    VisualConverterPanel.currentPanel = undefined;
+    if (this.currentPdfPath) {
+      VisualConverterPanel.panels.delete(this.currentPdfPath);
+    } else {
+      VisualConverterPanel.panels.delete('default');
+    }
     this.panel.dispose();
     while (this.disposables.length) {
       const x = this.disposables.pop();
@@ -241,7 +242,7 @@ export class VisualConverterPanel {
   <header>
     <div class="header-left">
       <span class="header-title">PDF to Text Visual Converter</span>
-      <span id="fileBadge" class="file-badge">No file selected</span>
+      <span id="fileBadge" class="file-badge">Loading...</span>
     </div>
     <div class="toolbar-actions">
       <button class="secondary" id="btnExtractAll">Convert All Pages</button>
@@ -251,7 +252,6 @@ export class VisualConverterPanel {
   </header>
 
   <div class="main-container">
-    <!-- Left PDF Viewer -->
     <div class="preview-pane">
       <div class="preview-nav">
         <div style="display: flex; gap: 6px; align-items: center;">
@@ -270,7 +270,6 @@ export class VisualConverterPanel {
       </div>
     </div>
 
-    <!-- Right Text Editor -->
     <div class="editor-pane">
       <div class="editor-toolbar">
         <div class="options-group">
@@ -361,7 +360,6 @@ export class VisualConverterPanel {
       await page.render({ canvasContext: ctx, viewport: viewport }).promise;
     }
 
-    // Math Detection Heuristics in Browser
     function detectMathSymbols(text) {
       const mathOps = ['∫', '∑', '∏', '√', '∂', '∇', '≈', '≠', '≤', '≥', '±', '∞', '∈', '∀', '∃', 'α', 'β', 'γ', 'δ', 'θ', 'λ', 'μ', 'π', 'σ', 'ω', 'Ψ', 'ħ'];
       let count = 0;
@@ -401,7 +399,6 @@ export class VisualConverterPanel {
 
       if (runOcr || pageText.trim().length === 0) {
         try {
-          // Render page to offscreen canvas for Tesseract OCR
           const viewport = page.getViewport({ scale: 2.0 });
           const ocrCanvas = document.createElement('canvas');
           ocrCanvas.width = viewport.width;
@@ -487,7 +484,6 @@ export class VisualConverterPanel {
       hideLoading();
     }
 
-    // Navigation Controls
     document.getElementById('btnPrevPage').addEventListener('click', async () => {
       if (currentPage > 1) {
         currentPage--;

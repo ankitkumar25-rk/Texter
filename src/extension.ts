@@ -10,11 +10,11 @@ export function activate(context: vscode.ExtensionContext): void {
   const logger = OutputLogger.getInstance();
   logger.info('PDF to Text Converter (Texter) extension activated.', 'Extension');
 
-  // Register command for single PDF file conversion (background)
+  // Register command for single/multi PDF file conversion (background)
   const convertFileSub = vscode.commands.registerCommand(
     'pdf-to-text.convertFile',
-    async (uri?: vscode.Uri) => {
-      await convertFileCommand(uri);
+    async (uri?: vscode.Uri, uris?: vscode.Uri[]) => {
+      await convertFileCommand(uri, uris);
     }
   );
 
@@ -34,11 +34,11 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   );
 
-  // Register interactive visual side-by-side converter command
+  // Register interactive visual side-by-side converter command (supports multi-selection tabs)
   const openVisualConverterSub = vscode.commands.registerCommand(
     'pdf-to-text.openVisualConverter',
-    async (uri?: vscode.Uri) => {
-      await openVisualConverterCommand(context.extensionUri, uri);
+    async (uri?: vscode.Uri, uris?: vscode.Uri[]) => {
+      await openVisualConverterCommand(context.extensionUri, uri, uris);
     }
   );
 
