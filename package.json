@@ -26,7 +26,6 @@
   "keywords": [
     "pdf",
     "text",
-    "markdown",
     "ocr",
     "tesseract",
     "converter",
@@ -55,12 +54,12 @@
       },
       {
         "command": "pdf-to-text.convertFile",
-        "title": "Convert PDF to Markdown / Text",
+        "title": "Convert PDF to Text",
         "category": "PDF to Text"
       },
       {
         "command": "pdf-to-text.convertFolder",
-        "title": "Convert PDFs in Folder to Markdown / Text",
+        "title": "Convert PDFs in Folder to Text",
         "category": "PDF to Text"
       },
       {
@@ -93,9 +92,9 @@
       "properties": {
         "pdfToText.outputFormat": {
           "type": "string",
-          "enum": ["md", "txt"],
-          "default": "md",
-          "description": "Output file format: 'md' for structured Markdown with LaTeX math blocks, or 'txt' for plain text."
+          "enum": ["txt", "md"],
+          "default": "txt",
+          "description": "Output file format: 'txt' (default) for high-fidelity exact plain text, or 'md' for markdown."
         },
         "pdfToText.ocrAllPages": {
           "type": "boolean",
