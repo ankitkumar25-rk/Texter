@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-import { ExtensionConfig } from './types';
+import { ExtensionConfig, OutputFileFormat } from './types';
 
 export const CONFIG_SECTION = 'pdfToText';
 
 export const DEFAULT_CONFIG: ExtensionConfig = {
+  outputFormat: 'md',
   ocrAllPages: true,
   ocrConfidenceThreshold: 60,
   outputSuffix: '',
@@ -26,7 +27,11 @@ export class ConfigManager {
   public getConfig(): ExtensionConfig {
     try {
       const vsConfig = vscode.workspace.getConfiguration(CONFIG_SECTION);
+      const rawFormat = this.getVal(vsConfig, 'outputFormat', DEFAULT_CONFIG.outputFormat);
+      const outputFormat: OutputFileFormat = rawFormat === 'txt' ? 'txt' : 'md';
+
       return {
+        outputFormat,
         ocrAllPages: this.getVal(vsConfig, 'ocrAllPages', DEFAULT_CONFIG.ocrAllPages),
         ocrConfidenceThreshold: this.getNumericVal(
           vsConfig,

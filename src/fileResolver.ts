@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { FileCollisionAction } from './types';
+import { FileCollisionAction, OutputFileFormat } from './types';
 import { OutputLogger } from './outputChannel';
 
 export interface CollisionDecision {
@@ -14,13 +14,15 @@ export class FileResolver {
 
   public static getTargetFilePath(
     sourcePdfPath: string,
-    suffix: string = ''
+    suffix: string = '',
+    format: OutputFileFormat = 'md'
   ): string {
     const dir = path.dirname(sourcePdfPath);
     const baseName = path.basename(sourcePdfPath, path.extname(sourcePdfPath));
     const cleanSuffix = suffix.trim();
     const finalBaseName = cleanSuffix ? `${baseName}${cleanSuffix}` : baseName;
-    return path.join(dir, `${finalBaseName}.txt`);
+    const ext = format === 'txt' ? '.txt' : '.md';
+    return path.join(dir, `${finalBaseName}${ext}`);
   }
 
   public static fileExists(filePath: string): boolean {
@@ -33,18 +35,20 @@ export class FileResolver {
 
   public static getVersionedFilePath(
     sourcePdfPath: string,
-    suffix: string = ''
+    suffix: string = '',
+    format: OutputFileFormat = 'md'
   ): string {
     const dir = path.dirname(sourcePdfPath);
     const baseName = path.basename(sourcePdfPath, path.extname(sourcePdfPath));
     const cleanSuffix = suffix.trim();
     const prefix = cleanSuffix ? `${baseName}${cleanSuffix}` : baseName;
+    const ext = format === 'txt' ? '.txt' : '.md';
 
     let version = 1;
-    let candidate = path.join(dir, `${prefix}_${version}.txt`);
+    let candidate = path.join(dir, `${prefix}_${version}${ext}`);
     while (fs.existsSync(candidate)) {
       version++;
-      candidate = path.join(dir, `${prefix}_${version}.txt`);
+      candidate = path.join(dir, `${prefix}_${version}${ext}`);
     }
     return candidate;
   }
@@ -53,7 +57,8 @@ export class FileResolver {
     targetPath: string,
     sourcePath: string,
     batchMode: boolean = false,
-    currentBatchChoice?: FileCollisionAction
+    currentBatchChoice?: FileCollisionAction,
+    format: OutputFileFormat = 'md'
   ): Promise<CollisionDecision> {
     if (!fs.existsSync(targetPath)) {
       return { action: 'overwrite', targetFilePath: targetPath };
@@ -89,7 +94,7 @@ export class FileResolver {
       case 'Skip':
         return { action: 'skip', targetFilePath: targetPath };
       case 'Create Versioned Copy': {
-        const versioned = this.getVersionedFilePath(sourcePath);
+        const versioned = this.getVersionedFilePath(sourcePath, '', format);
         return { action: 'version', targetFilePath: versioned };
       }
       case 'Overwrite All':

@@ -48,7 +48,11 @@ export class BatchProcessor {
 
       const sourcePdf = pdfPaths[index];
       const baseName = path.basename(sourcePdf);
-      const defaultTargetPath = FileResolver.getTargetFilePath(sourcePdf, config.outputSuffix);
+      const defaultTargetPath = FileResolver.getTargetFilePath(
+        sourcePdf,
+        config.outputSuffix,
+        config.outputFormat
+      );
 
       context?.report(
         `[${index + 1}/${totalFiles}] Checking ${baseName}...`,
@@ -62,7 +66,8 @@ export class BatchProcessor {
           defaultTargetPath,
           sourcePdf,
           totalFiles > 1,
-          batchCollisionChoice
+          batchCollisionChoice,
+          config.outputFormat
         );
 
         if (decision.action === 'skip' || decision.action === 'skipAll') {

@@ -26,6 +26,7 @@
   "keywords": [
     "pdf",
     "text",
+    "markdown",
     "ocr",
     "tesseract",
     "converter",
@@ -54,12 +55,12 @@
       },
       {
         "command": "pdf-to-text.convertFile",
-        "title": "Convert PDF to Text",
+        "title": "Convert PDF to Markdown / Text",
         "category": "PDF to Text"
       },
       {
         "command": "pdf-to-text.convertFolder",
-        "title": "Convert PDFs in Folder to Text",
+        "title": "Convert PDFs in Folder to Markdown / Text",
         "category": "PDF to Text"
       },
       {
@@ -90,6 +91,12 @@
     "configuration": {
       "title": "PDF to Text Converter",
       "properties": {
+        "pdfToText.outputFormat": {
+          "type": "string",
+          "enum": ["md", "txt"],
+          "default": "md",
+          "description": "Output file format: 'md' for structured Markdown with LaTeX math blocks, or 'txt' for plain text."
+        },
         "pdfToText.ocrAllPages": {
           "type": "boolean",
           "default": true,
@@ -105,12 +112,12 @@
         "pdfToText.outputSuffix": {
           "type": "string",
           "default": "",
-          "description": "Optional suffix added to output filename before the .txt extension (e.g. '_text')."
+          "description": "Optional suffix added to output filename before the extension (e.g. '_converted')."
         },
         "pdfToText.preservePageMarkers": {
           "type": "boolean",
           "default": true,
-          "description": "Insert visual page boundary markers (e.g., '--- Page 1 ---') in the output text."
+          "description": "Insert visual page boundary markers in the output text."
         }
       }
     }

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { ConfigManager } from './config';
 import { DocumentFormatter } from './formatter';
+import { MarkdownFormatter } from './markdownFormatter';
 import { HybridMerger } from './merger';
 import { OcrEngine } from './ocrEngine';
 import { OutputLogger } from './outputChannel';
@@ -14,17 +15,17 @@ export class SinglePdfConverter {
   private configManager = ConfigManager.getInstance();
 
   /**
-   * Converts a single PDF file into plain text.
+   * Converts a single PDF file into plain text or Markdown.
    */
   public async convertFile(
     sourcePdfPath: string,
-    targetTxtPath: string,
+    targetFilePath: string,
     progressCallback?: ProgressCallback,
     token?: vscode.CancellationToken
   ): Promise<ConversionResult> {
     const startTime = Date.now();
     const config = this.configManager.getConfig();
-    this.logger.info(`Starting conversion for: ${sourcePdfPath}`, 'SinglePdfConverter');
+    this.logger.info(`Starting conversion for: ${sourcePdfPath} (format: ${config.outputFormat})`, 'SinglePdfConverter');
 
     try {
       if (token?.isCancellationRequested) {
@@ -101,24 +102,23 @@ export class SinglePdfConverter {
         mergedPages.push(merged);
       }
 
-      // Step 3: Format the complete document
-      const fullText = DocumentFormatter.formatDocument(
-        mergedPages,
-        config.preservePageMarkers
-      );
+      // Step 3: Format the complete document based on configured format (.md or .txt)
+      const fullText = config.outputFormat === 'md'
+        ? MarkdownFormatter.formatDocument(mergedPages, config.preservePageMarkers)
+        : DocumentFormatter.formatDocument(mergedPages, config.preservePageMarkers);
 
       // Step 4: Write to output file
-      await fs.promises.writeFile(targetTxtPath, fullText, 'utf8');
+      await fs.promises.writeFile(targetFilePath, fullText, 'utf8');
 
       const durationMs = Date.now() - startTime;
       this.logger.info(
-        `Successfully converted ${sourcePdfPath} -> ${targetTxtPath} in ${durationMs}ms. Pages: ${totalPages}, OCR fallbacks: ${ocrFallbackPages}, Low-conf: ${lowConfidenceFlags}`,
+        `Successfully converted ${sourcePdfPath} -> ${targetFilePath} in ${durationMs}ms. Pages: ${totalPages}, OCR fallbacks: ${ocrFallbackPages}, Low-conf: ${lowConfidenceFlags}`,
         'SinglePdfConverter'
       );
 
       return {
         sourceFilePath: sourcePdfPath,
-        targetFilePath: targetTxtPath,
+        targetFilePath: targetFilePath,
         success: true,
         pageCount: totalPages,
         ocrFallbackPages,
@@ -135,7 +135,7 @@ export class SinglePdfConverter {
 
       return {
         sourceFilePath: sourcePdfPath,
-        targetFilePath: targetTxtPath,
+        targetFilePath: targetFilePath,
         success: false,
         pageCount: 0,
         ocrFallbackPages: 0,

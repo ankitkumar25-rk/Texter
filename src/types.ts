@@ -85,7 +85,10 @@ export interface ConversionResult {
 
 export type FileCollisionAction = 'overwrite' | 'skip' | 'version' | 'overwriteAll' | 'skipAll' | 'cancel';
 
+export type OutputFileFormat = 'md' | 'txt';
+
 export interface ExtensionConfig {
+  outputFormat: OutputFileFormat;
   ocrAllPages: boolean;
   ocrConfidenceThreshold: number;
   outputSuffix: string;
