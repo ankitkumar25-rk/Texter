@@ -2,6 +2,7 @@ import { runMathDetectorTests } from './mathDetector.test';
 import { runFileResolverTests } from './fileResolver.test';
 import { runMergerTests } from './merger.test';
 import { runConverterTests } from './converter.test';
+import { runBatchProcessorTests } from './batchProcessor.test';
 
 async function main() {
   console.log('Starting Test Suite...');
@@ -12,6 +13,7 @@ async function main() {
     runFileResolverTests();
     runMergerTests();
     runConverterTests();
+    runBatchProcessorTests();
   } catch (err) {
     console.error('Test Suite Failed:', err);
     hasFailures = true;
