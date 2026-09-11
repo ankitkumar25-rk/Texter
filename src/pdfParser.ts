@@ -2,37 +2,12 @@ import * as fs from 'fs';
 import { PdfPageContent, PdfTextItem } from './types';
 import { OutputLogger } from './outputChannel';
 
-let pdfjsLib: any = null;
-
-async function getPdfJs() {
-  if (!pdfjsLib) {
-    try {
-      pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
-    } catch {
-      try {
-        pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js');
-      } catch {
-        pdfjsLib = require('pdfjs-dist');
-      }
-    }
-
-    if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
-      try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve(
-          'pdfjs-dist/legacy/build/pdf.worker.js'
-        );
-      } catch {
-        try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = require.resolve(
-            'pdfjs-dist/build/pdf.worker.js'
-          );
-        } catch {
-          // fallback
-        }
-      }
-    }
+function getPdfJs() {
+  try {
+    return require('pdfjs-dist/legacy/build/pdf.js');
+  } catch {
+    return require('pdfjs-dist');
   }
-  return pdfjsLib;
 }
 
 export class PdfParser {
@@ -46,7 +21,7 @@ export class PdfParser {
 
     const fileBuffer = await fs.promises.readFile(filePath);
     const uint8Array = new Uint8Array(fileBuffer);
-    const pdfjs = await getPdfJs();
+    const pdfjs = getPdfJs();
 
     const loadingTask = pdfjs.getDocument({
       data: uint8Array,

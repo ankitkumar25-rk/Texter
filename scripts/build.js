@@ -15,7 +15,7 @@ async function buildAll() {
     sourcemap: !isProduction,
     platform: 'node',
     outfile: path.join(__dirname, '../dist/extension.js'),
-    external: ['vscode', 'canvas', '@napi-rs/canvas'],
+    external: ['vscode', 'canvas', '@napi-rs/canvas', 'pdfjs-dist', 'pdfjs-dist/*'],
     target: 'node18',
     logLevel: 'info',
   });
@@ -29,7 +29,7 @@ async function buildAll() {
     sourcemap: true,
     platform: 'node',
     outfile: path.join(__dirname, '../dist/test/runTests.js'),
-    external: ['vscode', 'canvas', '@napi-rs/canvas'],
+    external: ['vscode', 'canvas', '@napi-rs/canvas', 'pdfjs-dist', 'pdfjs-dist/*'],
     target: 'node18',
     logLevel: 'info',
   });

@@ -13,7 +13,7 @@ async function build() {
     sourcesContent: false,
     platform: 'node',
     outfile: 'dist/extension.js',
-    external: ['vscode', 'canvas'],
+    external: ['vscode', 'canvas', '@napi-rs/canvas', 'pdfjs-dist', 'pdfjs-dist/*'],
     logLevel: 'info',
   };
 
