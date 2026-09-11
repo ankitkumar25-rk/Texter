@@ -1,0 +1,127 @@
+{
+  "name": "texter",
+  "displayName": "PDF to Text Converter",
+  "description": "Convert PDF documents to clean text with an OCR-first hybrid engine for math, physics, diagrams, and tables.",
+  "version": "1.0.0",
+  "publisher": "ankitkumar25-rk",
+  "author": {
+    "name": "ankitkumar25-rk",
+    "url": "https://github.com/ankitkumar25-rk"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ankitkumar25-rk/Texter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ankitkumar25-rk/Texter/issues"
+  },
+  "homepage": "https://github.com/ankitkumar25-rk/Texter#readme",
+  "categories": [
+    "Other",
+    "Formatters",
+    "Data Science",
+    "Visualization"
+  ],
+  "keywords": [
+    "pdf",
+    "text",
+    "ocr",
+    "tesseract",
+    "converter",
+    "math",
+    "physics",
+    "extract",
+    "texter"
+  ],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "./dist/extension.js",
+  "icon": "assets/icon.png",
+  "activationEvents": [
+    "onCommand:pdf-to-text.convertFile",
+    "onCommand:pdf-to-text.convertFolder",
+    "onCommand:pdf-to-text.convertWorkspace"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "pdf-to-text.convertWorkspace",
+        "title": "PDF to Text: Convert",
+        "category": "PDF to Text"
+      },
+      {
+        "command": "pdf-to-text.convertFile",
+        "title": "Convert PDF to Text",
+        "category": "PDF to Text"
+      },
+      {
+        "command": "pdf-to-text.convertFolder",
+        "title": "Convert PDFs in Folder to Text",
+        "category": "PDF to Text"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "pdf-to-text.convertFile",
+          "when": "resourceExtname == .pdf",
+          "group": "7_modification@1"
+        },
+        {
+          "command": "pdf-to-text.convertFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "7_modification@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PDF to Text Converter",
+      "properties": {
+        "pdfToText.ocrAllPages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run OCR on every page in addition to text-layer extraction to capture formulas, symbols, and diagrams."
+        },
+        "pdfToText.ocrConfidenceThreshold": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "OCR confidence score threshold below which recognized text is wrapped in [OCR-LOW-CONFIDENCE] markers."
+        },
+        "pdfToText.outputSuffix": {
+          "type": "string",
+          "default": "",
+          "description": "Optional suffix added to output filename before the .txt extension (e.g. '_text')."
+        },
+        "pdfToText.preservePageMarkers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Insert visual page boundary markers (e.g., '--- Page 1 ---') in the output text."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "bundle": "node esbuild.js",
+    "bundle-watch": "node esbuild.js --watch",
+    "package": "node esbuild.js --production",
+    "test": "node ./dist/test/runTests.js",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^3.11.174",
+    "tesseract.js": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.3"
+  }
+}
